@@ -16,7 +16,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/aarohkandy/Vaidra/issues"
   },
@@ -36,6 +35,6 @@
     "postcss": "^8.5.6",
     "prisma": "^7.2.0",
     "react-audio-player": "^0.17.0",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^3.4.19"
   }
 }

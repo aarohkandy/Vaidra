@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
+    if (!prisma) {
+      return NextResponse.json([])
+    }
     const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category')
     const language = searchParams.get('language')
@@ -48,10 +51,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(researchPapers)
   } catch (error) {
     console.error('Error fetching research papers:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch research papers' },
-      { status: 500 }
-    )
+    return NextResponse.json([])
   }
 }
 
