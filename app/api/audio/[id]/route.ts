@@ -3,11 +3,19 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      )
+    }
+
+    const { id } = await params
     const audiobook = await prisma.audiobook.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!audiobook) {

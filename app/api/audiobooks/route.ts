@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
+    if (!prisma) {
+      // Return empty array if database not configured
+      return NextResponse.json([])
+    }
+
     const searchParams = request.nextUrl.searchParams
     const category = searchParams.get('category')
     const language = searchParams.get('language')
@@ -50,10 +55,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(audiobooks)
   } catch (error) {
     console.error('Error fetching audiobooks:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch audiobooks' },
-      { status: 500 }
-    )
+    return NextResponse.json([])
   }
 }
 
