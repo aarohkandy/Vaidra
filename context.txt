@@ -1,0 +1,68 @@
+# Vaidra.org Website Context
+
+## 1. Headers, Subheaders, and Key Text
+*   **Site Title:** Vaidra
+*   **Hero Headline:** Access free educational and self-improvement audiobooks in regional Indian languages.
+*   **Hero Subheadline:** Empower yourself with knowledge in your mother tongue.
+*   **Mission Header:** Our Mission
+*   **Mission Paragraph:** At Vaidra, we believe that language should never be a barrier to education and self-improvement. Our mission is to create a repository of quality audiobooks in regional Indian languages, making knowledge accessible to everyone regardless of their linguistic background.
+*   **Footer Tagline:** Providing free educational and self-improvement audiobooks in regional Indian languages to make knowledge accessible to all.
+*   **Legal Text:** Vaidra is a Section 8 Company registered under the Companies Act, 2013 (India).
+*   **Copyright:** © 2026 Vaidra. All rights reserved.
+
+## 2. Featured Courses
+*   **Basics of Cell Biology / செல் உயிரியலின் அடிப்படைகள்**
+    *   **Level:** Advanced
+    *   **Category:** Science | **Language:** Tamil
+*   **NCERT 10th Class Physics Review / NCERT 10వ తరగతి ఫిజిక్స్ సమీక్ష**
+    *   **Level:** Advanced
+    *   **Category:** Science | **Language:** Telugu
+*   **वैश्विक टेपेस्ट्री / Global Tapestry**
+    *   **Level:** Intermediate
+    *   **Category:** History | **Language:** Hindi
+*   **CBSE ఇంగ్లీష్: క్రాకింగ్ ది కోడ్/ English: Crack the code**
+    *   **Level:** Beginner
+    *   **Category:** Other | **Language:** Telugu | **Author:** Shravy
+*   **भविष्य_का_पूर्वानुमान / Future forecast**
+    *   **Level:** Beginner
+    *   **Category:** Life Skills | **Language:** Hindi | **Author:** R C
+*   **जीवन_का_ब्लूप्रिंट / Life's Blueprint**
+    *   **Level:** Beginner
+    *   **Category:** Health | **Language:** Hindi | **Author:** R C
+
+## 3. Featured Audiobooks
+*   **திருவள்ளுவர்-நாயனாரின் 'புனித' குறள்**
+    *   **Author:** திருவள்ளுவர் (Thiruvalluvar)
+    *   **Category:** Self Improvement | **Language:** Tamil
+*   **Bhagavad Gita**
+    *   **Author:** Original by Vyasa
+    *   **Category:** Self Improvement | **Language:** Marathi
+*   **Atomic Habits**
+    *   **Author:** James Clear
+    *   **Category:** Self Improvement | **Language:** Hindi
+*   **Visha Vahini**
+    *   **Author:** Somaraju
+    *   **Category:** Fantasy | **Language:** Telugu
+
+## 4. Research Papers
+*   **Quantum Computing** (Translated research paper in Telugu) - Category: Technology
+*   **Quantum Computing** (Translated research paper in Tamil) - Category: Technology
+*   **Quantum Computing** (Translated research paper in Kannada) - Category: Technology
+
+## 5. Categories (Browse by Category Section)
+*   Self Improvement, Education, Leadership, Business, Technology, Humanities, Health & Wellness, Career Development.
+
+## 6. Languages (Choose Your Language Grid)
+*   English, Hindi, Tamil, Kannada, Telugu, Marathi, Punjabi.
+
+## 7. Footer Content
+*   **Quick Links:** Home, Browse Audiobooks, Categories, Research Papers, About Us, Contact.
+*   **Social Icons:** LinkedIn, Discord, Blog, Instagram, GitHub.
+*   **Contact Info:** contact@vaidra.org
+
+## 8. Design Specifications
+*   **Font Family:** Inter (Primary/Body/Headings)
+*   **Primary Blue:** `#0045A5` (`rgb(0, 69, 165)`)
+*   **Background:** `#FFFFFF` (White) / `#F9FAFB` (Gray 50)
+*   **Text Color:** `#374151` (Gray 700)
+*   **Secondary Text:** `rgb(107, 114, 128)` (Gray 500)

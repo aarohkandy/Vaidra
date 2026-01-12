@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  audiobooks Audiobook[]
+  courses    Course[]
+  research   ResearchPaper[]
+}
+
+model Language {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g., "en", "hi", "ta"
+  name      String   @unique // e.g., "English", "Hindi", "Tamil"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  audiobooks Audiobook[]
+  courses    Course[]
+  research   ResearchPaper[]
+}
+
+model Audiobook {
+  id          String   @id @default(cuid())
+  title       String
+  titleNative String?  // Native language title
+  author      String
+  description String?
+  audioUrl    String
+  categoryId  String
+  languageId  String
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@index([categoryId])
+  @@index([languageId])
+  @@index([featured])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  titleNative String?  // Native language title
+  level       String   // Beginner, Intermediate, Advanced
+  description String?
+  contentUrl  String?  // URL to course content
+  categoryId  String
+  languageId  String
+  author      String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@index([categoryId])
+  @@index([languageId])
+  @@index([featured])
+}
+
+model ResearchPaper {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  pdfUrl      String
+  categoryId  String
+  languageId  String
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+  language Language @relation(fields: [languageId], references: [id])
+
+  @@index([categoryId])
+  @@index([languageId])
+  @@index([featured])
+}
+
