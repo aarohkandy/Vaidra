@@ -48,6 +48,35 @@ def fetch(path, query=""):
     return dest
 
 
+# Read-only JSON the site's JS fetches; mirrored so pages work offline and on static hosting.
+# (vercel.json rewrites these URLs to the .json files.)
+LANGS = ["en", "hi", "te", "ta", "mr", "kn", "bn", "pa"]
+API_GETS = [f"/api/translations/{l}" for l in LANGS] + ["/api/volunteers", "/api/auth/session"] + [
+    f"/api/catalog/{t}?limit={n}" for t, n in
+    [("audiobooks", 40), ("audiobooks", 48), ("courses", 12), ("courses", 48), ("courses", 200),
+     ("research-papers", 6), ("research-papers", 48), ("research-papers", 200)]]
+
+
+def api_file(path, query=""):
+    """/api/catalog/courses?limit=12 -> site/api/catalog/courses/limit-12.json"""
+    limit = urllib.parse.parse_qs(query).get("limit")
+    return os.path.join(ROOT, path.strip("/") + (f"/limit-{limit[0]}" if limit else "") + ".json")
+
+
+def fetch_api(url):
+    path, _, query = url.partition("?")
+    try:
+        req = urllib.request.Request(UPSTREAM + url, headers={**UA, "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            body = r.read()
+    except Exception as e:
+        return print("miss", url, e)
+    dest = api_file(path, query)
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    with open(dest, "wb") as f:
+        f.write(body)
+
+
 ASSET_RE = re.compile(rb'(?:href|src)="(/[^"#]+)"|url\((/[^)"\']+)\)|"(/_next/static/[^"\\]+)"|(/_next/image\?[^ "&]+(?:&amp;[^ "&]+)*)')
 
 
@@ -82,6 +111,7 @@ def mirror():
             for dest in pool.map(lambda x: fetch(*x), batch):
                 if dest and (dest.endswith((".html", ".css")) or "/webpack-" in dest):
                     queue += [a for a in assets_in(dest) if a not in seen]
+        list(pool.map(fetch_api, API_GETS))
     print(f"mirrored {len(seen)} files into {ROOT}")
 
 
@@ -96,21 +126,38 @@ class Handler(SimpleHTTPRequestHandler):
                                      headers={**UA, "Content-Type": self.headers.get("Content-Type", "application/json")})
         try:
             r = urllib.request.urlopen(req, timeout=30)
+            status, ctype, body = r.status, r.headers.get("Content-Type", "application/json"), r.read()
         except urllib.error.HTTPError as e:
-            r = e
-        body = r.read()
-        self.send_response(r.status)
-        self.send_header("Content-Type", r.headers.get("Content-Type", "application/json"))
+            status, ctype, body = e.code, e.headers.get("Content-Type", "application/json"), e.read()
+        except Exception as e:  # offline / upstream down: answer instead of dropping the connection
+            status, ctype, body = 502, "application/json", ('{"error": "upstream unavailable: %s"}' % e).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
 
     do_POST = proxy
 
+    def end_headers(self):
+        # Design files change constantly while iterating; never let the browser serve a stale copy.
+        if self.path.startswith("/premium/"):
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
     def do_GET(self):
         u = urllib.parse.urlsplit(self.path)
         if u.path.startswith("/api/"):
-            return self.proxy()
+            f = api_file(u.path, u.query)
+            if not os.path.exists(f):
+                return self.proxy()
+            body = open(f, "rb").read()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if u.path.startswith("/premium/"):
             return super().do_GET()
         # RSC payload requests: answer 404 so Next.js falls back to a full page load.
