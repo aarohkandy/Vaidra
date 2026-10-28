@@ -444,3 +444,6 @@ main .card-grid.vp-solo > a > .vp-langs { padding: 0 1.5rem 1.4rem calc(1.5rem +
   main .card-grid.vp-solo > a > .p-6 > :not(:first-child) { grid-column: 1; }
   main .card-grid.vp-solo > a > .vp-langs { padding: 0 1.5rem 1.4rem; margin-top: 0; }
 }
+
+/* Result counters: our distinct-title count replaces the per-language one. */
+.vp-count-src { display: none !important; }

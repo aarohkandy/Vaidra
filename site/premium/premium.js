@@ -196,6 +196,29 @@
     });
   }
 
+  // "79 courses found" counts every language version. Show distinct titles instead,
+  // in our own element next to the page's (which stays, hidden, so React can keep updating it).
+  var COUNTER = /^\d+\s+(course|courses|paper|papers)\s+found$/;
+  function updateCounters(main) {
+    // The courses page renders 12 at a time; counting needs them all, and once
+    // grouped the full list is short anyway.
+    var more = Array.prototype.find.call(main.querySelectorAll("button"), function (b) { return /^Load More Courses$/i.test(b.textContent.trim()); });
+    if (more) more.click();
+    // React swaps in a fresh counter node when filters change, so rebuild ours every pass.
+    main.querySelectorAll(".vp-count").forEach(function (el) { el.remove(); });
+    main.querySelectorAll("p").forEach(function (p) {
+      var m = COUNTER.exec(p.textContent.trim());
+      if (!m) return;
+      var paper = /^paper/.test(m[1]);
+      var n = main.querySelectorAll((paper ? 'a[href^="/research-papers/"]' : 'a[href^="/courses/"]') + ":not(.vp-dup)").length;
+      var out = document.createElement("p");
+      out.className = p.className.replace("vp-count-src", "") + " vp-count";
+      p.classList.add("vp-count-src");
+      p.after(out);
+      out.textContent = n + " " + (paper ? "paper" : "course") + (n === 1 ? "" : "s") + " found";
+    });
+  }
+
   var busy = false;
   function dedupe() {
     if (busy) return;
@@ -210,6 +233,8 @@
         backfill(grid, r.hidden, shown);
       }
     });
+    var main = document.querySelector("main");
+    if (main) updateCounters(main);
     busy = false;
   }
 
@@ -220,7 +245,7 @@
     new MutationObserver(function (muts) {
       // Ignore our own edits (chips, classes); react to lists React re-renders.
       // Filters both add and remove cards, so either kind of change triggers a regroup.
-      function theirs(n) { return n.nodeType === 1 && !n.classList.contains("vp-langs") && !n.classList.contains("vp-filled"); }
+      function theirs(n) { return n.nodeType === 1 && !n.classList.contains("vp-langs") && !n.classList.contains("vp-filled") && !n.classList.contains("vp-count"); }
       var external = muts.some(function (m) {
         return Array.prototype.some.call(m.addedNodes, theirs) || Array.prototype.some.call(m.removedNodes, theirs);
       });
