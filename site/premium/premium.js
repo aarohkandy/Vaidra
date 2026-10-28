@@ -105,9 +105,137 @@
     }
   }
 
+  // ---- One card per title ------------------------------------------------
+  // Each audiobook/course is published once per language ("…-startup-india-mr",
+  // "…-startup-india-ta") with the same cover, so lists fill up with lookalikes.
+  // Keep the first card of each title, hide the rest, and list their languages
+  // as chips on the kept card.
+  var LANGS = { en: "English", hi: "Hindi", te: "Telugu", ta: "Tamil", mr: "Marathi", kn: "Kannada", bn: "Bengali", pa: "Punjabi" };
+  var SLUG = /^\/(audiobooks|courses)\/(.+)-(en|hi|te|ta|mr|kn|bn|pa)$/;
+
+  function titleKey(card) {
+    var href = card.getAttribute("href") || "";
+    var m = SLUG.exec(href);
+    if (m) return { base: m[1] + "/" + m[2], lang: LANGS[m[3]], href: m[0] };
+    // Research papers use opaque ids; the language only appears in the card text.
+    var h = card.querySelector("h3");
+    var names = Object.keys(LANGS).map(function (k) { return LANGS[k]; }).join("|");
+    var l = new RegExp("research paper in (" + names + ")", "i").exec(card.textContent);
+    if (href.indexOf("/research-papers/") === 0 && h && l) return { base: "research-papers/" + h.textContent.trim(), lang: l[1], href: href };
+    return null;
+  }
+
+  function langChips(others) {
+    var row = document.createElement("div");
+    row.className = "vp-langs";
+    row.appendChild(document.createTextNode("Also in"));
+    others.forEach(function (o) {
+      // The card itself is a link, so chips navigate by script rather than nesting <a>.
+      var chip = document.createElement("span");
+      chip.className = "vp-lang";
+      chip.setAttribute("role", "link");
+      chip.tabIndex = 0;
+      chip.textContent = o.lang;
+      function go(e) { e.preventDefault(); e.stopPropagation(); location.href = o.href; }
+      chip.addEventListener("click", go);
+      chip.addEventListener("keydown", function (e) { if (e.key === "Enter") go(e); });
+      row.appendChild(chip);
+    });
+    return row;
+  }
+
+  function cardsIn(grid) {
+    return Array.prototype.filter.call(grid.children, function (c) { return c.matches("a.card, a.card-frame") && titleKey(c); });
+  }
+
+  function groupGrid(grid) {
+    // Recompute from scratch: filters re-render these lists and reuse nodes.
+    grid.querySelectorAll(":scope > .vp-dup").forEach(function (c) { c.classList.remove("vp-dup"); });
+    grid.querySelectorAll(":scope > a > .vp-langs").forEach(function (r) { r.remove(); });
+    var groups = {}, order = [];
+    cardsIn(grid).forEach(function (c) {
+      var k = titleKey(c);
+      if (!groups[k.base]) { groups[k.base] = []; order.push(k.base); }
+      groups[k.base].push({ card: c, lang: k.lang, href: k.href });
+    });
+    var hidden = 0;
+    order.forEach(function (b) {
+      var g = groups[b];
+      if (g.length < 2) return;
+      g.slice(1).forEach(function (o) { o.card.classList.add("vp-dup"); hidden++; });
+      g[0].card.appendChild(langChips(g.slice(1)));
+    });
+    // A row that collapses to one title shows it as a wide feature card.
+    grid.classList.toggle("vp-solo", order.length === 1 && hidden > 0);
+    return { hidden: hidden, bases: order };
+  }
+
+  var catalog; // browse page cards, fetched once for backfilling the home page
+  function backfill(grid, need, shown) {
+    var kind = (cardsIn(grid)[0] && titleKey(cardsIn(grid)[0]).base.split("/")[0]);
+    if (!kind || !need) return;
+    catalog = catalog || fetch("/browse").then(function (r) { return r.text(); }).then(function (html) {
+      return new DOMParser().parseFromString(html, "text/html");
+    });
+    catalog.then(function (doc) {
+      var groups = {}, order = [];
+      doc.querySelectorAll("a.card, a.card-frame").forEach(function (c) {
+        var k = titleKey(c);
+        if (!k || k.base.split("/")[0] !== kind || shown.indexOf(k.base) >= 0) return;
+        if (!groups[k.base]) { groups[k.base] = []; order.push(k.base); }
+        groups[k.base].push({ card: c, lang: k.lang, href: k.href });
+      });
+      order.slice(0, need).forEach(function (b) {
+        var g = groups[b];
+        var card = document.importNode(g[0].card, true);
+        card.classList.add("vp-filled");
+        if (g.length > 1) card.appendChild(langChips(g.slice(1)));
+        grid.appendChild(card);
+        shown.push(b);
+      });
+    });
+  }
+
+  var busy = false;
+  function dedupe() {
+    if (busy) return;
+    busy = true;
+    var shown = [];
+    document.querySelectorAll("main .card-grid, main .grid").forEach(function (grid) {
+      if (!cardsIn(grid).length) return;
+      var r = groupGrid(grid);
+      shown = shown.concat(r.bases);
+      if (page === "home" && !grid.dataset.vpFilled) {
+        grid.dataset.vpFilled = "1";
+        backfill(grid, r.hidden, shown);
+      }
+    });
+    busy = false;
+  }
+
+  function watchLists() {
+    var main = document.querySelector("main");
+    if (!main) return;
+    var t;
+    new MutationObserver(function (muts) {
+      // Ignore our own edits (chips, classes); react to lists React re-renders.
+      // Filters both add and remove cards, so either kind of change triggers a regroup.
+      function theirs(n) { return n.nodeType === 1 && !n.classList.contains("vp-langs") && !n.classList.contains("vp-filled"); }
+      var external = muts.some(function (m) {
+        return Array.prototype.some.call(m.addedNodes, theirs) || Array.prototype.some.call(m.removedNodes, theirs);
+      });
+      if (!external) return;
+      clearTimeout(t);
+      t = setTimeout(dedupe, 120);
+    }).observe(main, { childList: true, subtree: true });
+  }
+
   // Only touch the DOM after React has hydrated, otherwise it re-renders over our changes.
   // A second pass picks up client-rendered lists that arrive later.
-  function start() { setTimeout(tag, 300); setTimeout(tag, 1500); }
+  function start() {
+    setTimeout(function () { tag(); dedupe(); watchLists(); }, 300);
+    setTimeout(tag, 1500);
+  }
   if (document.readyState === "complete") start();
   else window.addEventListener("load", start);
 })();

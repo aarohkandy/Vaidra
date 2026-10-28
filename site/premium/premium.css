@@ -402,3 +402,45 @@ body > nav a[href*="register"]:is([class~="bg-gold"]) {
 }
 main section.relative.overflow-hidden:first-of-type a:is([class~="bg-gold"]):hover,
 body > nav a[href*="register"]:is([class~="bg-gold"]):hover { background: var(--vp-blue-dark) !important; }
+
+/* ---------- One card per title: other language versions as chips ---------- */
+.vp-dup { display: none !important; }
+.vp-langs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--vp-muted);
+}
+main a.card-frame > .vp-langs { margin: 0; padding: 0 1.25rem 1.1rem; }
+.vp-lang {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--vp-blue-soft);
+  color: var(--vp-blue);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.vp-lang:hover, .vp-lang:focus-visible { background: var(--vp-blue); color: #fff; }
+
+/* A row that collapses to a single title becomes one wide feature card. */
+main .card-grid.vp-solo { grid-template-columns: minmax(0, 1fr) !important; }
+main .card-grid.vp-solo > a:not(.vp-dup) { max-width: 60rem; }
+main .card-grid.vp-solo > a > .p-6 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-rows: auto auto 1fr;
+  column-gap: 2rem;
+}
+main .card-grid.vp-solo > a > .p-6 > div:first-child { grid-row: 1 / -1; height: 100% !important; min-height: 14rem; margin: 0 !important; }
+main .card-grid.vp-solo > a > .p-6 > :not(:first-child) { grid-column: 2; }
+main .card-grid.vp-solo > a > .vp-langs { padding: 0 1.5rem 1.4rem calc(1.5rem + (100% - 3rem - 2rem) * 0.45 + 2rem); margin-top: -0.5rem; }
+@media (max-width: 720px) {
+  main .card-grid.vp-solo > a > .p-6 { grid-template-columns: minmax(0, 1fr); }
+  main .card-grid.vp-solo > a > .p-6 > div:first-child { grid-row: auto; height: 12rem !important; min-height: 0; margin-bottom: 1.25rem !important; }
+  main .card-grid.vp-solo > a > .p-6 > :not(:first-child) { grid-column: 1; }
+  main .card-grid.vp-solo > a > .vp-langs { padding: 0 1.5rem 1.4rem; margin-top: 0; }
+}
