@@ -22,13 +22,18 @@ def local_path(path, query=""):
     if path.startswith("/_next/image"):
         return os.path.join(ROOT, "_next/image", hashlib.sha1(query.encode()).hexdigest()[:16])
     if path.endswith("/") or "." not in os.path.basename(path):
-        return os.path.join(ROOT, path.strip("/"), "index.html")
-    return os.path.join(ROOT, path.lstrip("/"))
+        f = os.path.join(ROOT, path.strip("/"), "index.html")
+    else:
+        f = os.path.join(ROOT, path.lstrip("/"))
+    f = os.path.realpath(f)
+    return f if f.startswith(os.path.realpath(ROOT) + os.sep) else None
 
 
 def fetch(path, query=""):
     """Download path from upstream into site/, injecting the design layer into HTML."""
     dest = local_path(path, query)
+    if dest is None:
+        return None
     if os.path.exists(dest):
         return dest
     url = UPSTREAM + path + ("?" + query if query else "")
@@ -60,7 +65,11 @@ API_GETS = [f"/api/translations/{l}" for l in LANGS] + ["/api/volunteers", "/api
 def api_file(path, query=""):
     """/api/catalog/courses?limit=12 -> site/api/catalog/courses/limit-12.json"""
     limit = urllib.parse.parse_qs(query).get("limit")
-    return os.path.join(ROOT, path.strip("/") + (f"/limit-{limit[0]}" if limit else "") + ".json")
+    if limit and not limit[0].isdigit():
+        return None
+    f = os.path.realpath(os.path.join(ROOT, path.strip("/") + (f"/limit-{limit[0]}" if limit else "") + ".json"))
+    # Never resolve outside site/ (e.g. "/api/../../x" or a crafted limit).
+    return f if f.startswith(os.path.realpath(ROOT) + os.sep) else None
 
 
 def fetch_api(url):
@@ -72,6 +81,8 @@ def fetch_api(url):
     except Exception as e:
         return print("miss", url, e)
     dest = api_file(path, query)
+    if dest is None:
+        return
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     with open(dest, "wb") as f:
         f.write(body)
@@ -149,7 +160,7 @@ class Handler(SimpleHTTPRequestHandler):
         u = urllib.parse.urlsplit(self.path)
         if u.path.startswith("/api/"):
             f = api_file(u.path, u.query)
-            if not os.path.exists(f):
+            if not f or not os.path.exists(f):
                 return self.proxy()
             body = open(f, "rb").read()
             self.send_response(200)
@@ -165,7 +176,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_error(404)
         query = u.query if u.path.startswith("/_next/image") else ""
         dest = local_path(u.path, query)
-        if not os.path.exists(dest) and not fetch(u.path, query):
+        if dest is None or (not os.path.exists(dest) and not fetch(u.path, query)):
             return self.send_error(404)
         if u.path.startswith("/_next/image"):
             body = open(dest, "rb").read()
