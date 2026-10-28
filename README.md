@@ -1,106 +1,32 @@
-# Vaidra - Educational Audiobooks Platform
+# Vaidra
 
-A Next.js web application for providing free educational and self-improvement audiobooks in regional Indian languages.
+Static mirror of [vaidra.org](https://www.vaidra.org) with a premium design layer on top.
 
-## Features
+- `site/` – every page from the sitemap plus all `_next` assets, fonts and images.
+- `site/premium/premium.css` + `premium.js` – the redesign. Injected into every page's `<head>`; edit these to change the look.
+- `vaidra_site.py` – mirror + local server (stdlib only).
 
-- Multi-language support (Hindi, Tamil, Telugu, Kannada, Marathi, Punjabi, English)
-- Browse audiobooks, courses, and research papers
-- Category-based filtering
-- Responsive design with Tailwind CSS
-
-## Tech Stack
-
-- **Framework**: Next.js 16 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Prisma (PostgreSQL)
-- **Deployment**: Ready for Vercel/Netlify
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- PostgreSQL database (for production)
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/aarohkandy/Vaidra.git
-cd Vaidra
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local` and add your database URL:
-```
-DATABASE_URL="postgresql://user:password@localhost:5432/vaidra?schema=public"
-```
-
-4. Generate Prisma client:
-```bash
-npx prisma generate
-```
-
-5. Run database migrations (when database is set up):
-```bash
-npx prisma migrate dev
-```
-
-6. Start the development server:
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Build for Production
+## Local
 
 ```bash
-npm run build
-npm start
+python3 vaidra_site.py serve      # http://localhost:8080
 ```
 
-## Deployment
+The server proxies `/api/*` to the live site and fetches any file missing from `site/` on demand.
 
-The application is ready to deploy on Vercel, Netlify, or any platform that supports Next.js.
+## Refresh content from the live site
 
-### Vercel Deployment
-
-1. Push your code to GitHub
-2. Import your repository on [Vercel](https://vercel.com)
-3. Add environment variables (DATABASE_URL)
-4. Deploy!
-
-## Project Structure
-
-```
-├── app/              # Next.js App Router pages
-│   ├── api/         # API routes
-│   ├── about/       # About page
-│   ├── browse/      # Browse audiobooks
-│   ├── categories/  # Categories page
-│   ├── contact/     # Contact page
-│   ├── research/    # Research papers
-│   └── layout.tsx   # Root layout
-├── components/      # React components
-├── lib/             # Utility functions
-├── prisma/          # Database schema
-└── public/          # Static assets
+```bash
+find site -mindepth 1 -maxdepth 1 ! -name premium -exec rm -rf {} + && python3 vaidra_site.py mirror
 ```
 
-## License
+## Deploy
 
-ISC
+Vercel serves `site/` as static files (`vercel.json`); `/api/*` is rewritten to www.vaidra.org.
+Pushing to `main` redeploys.
 
+## Known gaps
+
+- `/research-papers/<id>` detail pages return HTTP 500 on the live site, so they aren't mirrored.
+- Signed-in areas (`/admin`, `/user`, `/profile`, `/speaker`, `/teacher`) aren't mirrored; sign-in itself talks to Firebase directly.
+- Content images and audio stream from Firebase Storage, as on the live site.

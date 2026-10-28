@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Zilla Parishad High School">
+  <circle cx="60" cy="60" r="56" fill="#1a3a5c" stroke="#c88c22" stroke-width="4"/>
+  <circle cx="60" cy="60" r="46" fill="none" stroke="#c88c22" stroke-width="1.5" opacity="0.6"/>
+  <text x="60" y="54" text-anchor="middle" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#f5f0e8">ZPP</text>
+  <text x="60" y="74" text-anchor="middle" font-family="Georgia, serif" font-size="9" fill="#c88c22" letter-spacing="1">KANCHIKACHERLA</text>
+</svg>

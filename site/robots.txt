@@ -1,0 +1,12 @@
+User-Agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /user/
+Disallow: /profile
+Disallow: /speaker/
+Disallow: /teacher/
+
+Host: https://www.vaidra.org
+Sitemap: https://www.vaidra.org/sitemap.xml
